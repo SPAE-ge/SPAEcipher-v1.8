@@ -593,6 +593,12 @@ void wcs_write_log(FILE* f, wchar_t* data)
     fflush(f);
 }
 
+void wcs_const_write_log(FILE* f, const wchar_t* data)
+{
+    fwprintf(f, L"%lS", data);
+    fflush(f);
+}
+
 void int_write_log(FILE* f, char* description, size_t val)
 {
     char* log = CALLOC(sizeof(char) * 256, 1);

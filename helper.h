@@ -84,6 +84,7 @@ int value_in_array(size_t val, size_t* arr, size_t len);
 wchar_t* wget_file_name_from_path(wchar_t* path);
 int find_str_in_file(char const* fname, char* str);
 void wcs_write_log(FILE* f, wchar_t* data);
+void wcs_const_write_log(FILE* f, const wchar_t* data);
 void write_log(FILE* f, const char* data);
 void int_write_log(FILE* f, char* description, size_t val);
 void int_wcs_write_log(FILE* f, wchar_t* description, size_t val);

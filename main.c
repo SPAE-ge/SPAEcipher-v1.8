@@ -2335,7 +2335,7 @@ SPAE_DLL_EXPIMP char* SPAE_CALL file_to_binary_enc(char* file, size_t* req_bits_
     {
 
         buffer[bytesRead * 1] = '\0';
-        mpz_import(c, bytesRead, 1, sizeof(buffer[0]), 0, 0, buffer);
+        mpz_import(c, bytesRead, 1, sizeof(buffer[0]), 1, 0, buffer);
         mpz_get_str(tmp_buffer, 2, c);
 
         const size_t len = strlen(tmp_buffer);
@@ -4854,7 +4854,7 @@ SPAE_DLL_EXPIMP enc_error_t SPAE_CALL encrypt_file_with_anal(char* f_name, char*
 /*-------------------------------------------LOG--------------------------------------------------------------*/
     // Start log file
     wcs_write_log(log_file, L"#############################################################################\n");
-    wcs_write_log(log_file, L"Encryption Analysis with SPAE Rev. 1.8 used to encrypt\n");
+    wcs_write_log(log_file, L"Encryption Analysis with SPAE 1.8 used to encrypt\n");
     wcs_write_log(log_file, L"Logging started at ");
     
     // Log Get & set logging time
@@ -4888,7 +4888,7 @@ SPAE_DLL_EXPIMP enc_error_t SPAE_CALL encrypt_file_with_anal(char* f_name, char*
 
     /*-------------------------------------------LOG--------------------------------------------------------------*/
     // Log file's binary size
-    int_wcs_write_log(log_file, L"\n\tFile size in bits is:            ", requested_bits_count);
+    int_wcs_write_log(log_file, L"\n\tFile size in bits is, including bits added for perfect 6 divisibility is:            ", requested_bits_count);
     /*---------------------------------------------------------------------------------------------------------*/
 
     bitsInfo_s = compute_bits_info(binary_content, circle, enc_cfg_f_path, member_id, is_first_usage, error_desc);
@@ -5050,7 +5050,7 @@ SPAE_DLL_EXPIMP enc_error_t SPAE_CALL encrypt_file_with_anal(char* f_name, char*
     /*-------------------------------------------LOG--------------------------------------------------------------*/
     int_wcs_write_log(log_file, L"\n\tPrime number used for PSP:       ", next_prime_num);
 
-    wcs_write_log(log_file, L"\n\tThe following eight control characters in order of insertion into the c-text character sequence during encryption:");
+    wcs_write_log(log_file, L"\n\tThe following nine control characters in order of insertion into the c-text character sequence during encryption:");
     
     wcs_write_log(log_file, L"\n-----------------------------------------------------------------------------\n");
     
@@ -5130,12 +5130,12 @@ SPAE_DLL_EXPIMP enc_error_t SPAE_CALL encrypt_file_with_anal(char* f_name, char*
     if (is_even(insert_order))
     {
         // L->R
-        wcs_write_log(log_file, L"\tL->R");
+        wcs_write_log(log_file, L"\tL->R (top to bottom)");
     }
     else
     {
         // R->L
-        wcs_write_log(log_file, L"\tR->L");
+        wcs_write_log(log_file, L"\tR->L (bottom to top)");
     }
 
     wchar_t* w_pps_42 = ALLOC(sizeof(wchar_t) * 42 + 1);
@@ -5221,11 +5221,12 @@ SPAE_DLL_EXPIMP enc_error_t SPAE_CALL encrypt_file_with_anal(char* f_name, char*
 
     w_insert_char_itself(plain_spec_with_char_and_PPS, *last_ctrl_spec_char, c9_insrt_pos);
 
-    wcs_write_log(log_file, L"\n\tC9 control char:  ");
+    wcs_write_log(log_file, L"\n\tC9 control char inserted last:  ");
     wcs_write_log(log_file, L"\n\t\t");
     wcs_write_log(log_file, last_ctrl_spec_char);
+    wcs_write_log(log_file, L", by Table 4");
 
-    wcs_write_log(log_file, L"\t\t\t");
+    wcs_write_log(log_file, L"\t\t");
 
     char* c9_spc_char_index_seq = ALLOC(sizeof(char) * 6 + 1);
     memcpy_s(c9_spc_char_index_seq, 7, c9_char_six_bits, 6);
@@ -5233,12 +5234,13 @@ SPAE_DLL_EXPIMP enc_error_t SPAE_CALL encrypt_file_with_anal(char* f_name, char*
     wchar_t* w_spec_c9_seq = ALLOC(sizeof(wchar_t) * strlen(c9_spc_char_index_seq) + 1);
     mbstowcs_s(NULL, w_spec_c9_seq, strlen(c9_spc_char_index_seq) + 1, c9_spc_char_index_seq, strlen(c9_spc_char_index_seq));
     wcs_write_log(log_file, w_spec_c9_seq);
+    wcs_write_log(log_file, L", 1st 6 PPS start bits.");
 
     // Convert index value to binary
     wchar_t* w_c9_lock_char_pos_binary = ALLOC(sizeof(wchar_t) * strlen(last_bits) + 1);
     mbstowcs_s(NULL, w_c9_lock_char_pos_binary, strlen(last_bits) + 1, last_bits, strlen(last_bits));
 
-    wcs_write_log(log_file, L"\t\t\t");
+    wcs_write_log(log_file, L"\t");
     wcs_write_log(log_file, w_c9_lock_char_pos_binary);
     int_wcs_write_log_without_new_line(log_file, L"=>", bindec(last_bits));
     int_wcs_write_log(log_file, L"=>", c9_insrt_pos);
@@ -5340,7 +5342,7 @@ SPAE_DLL_EXPIMP enc_error_t SPAE_CALL encrypt_file_with_anal(char* f_name, char*
     wcs_write_log(log_file, L"\n-----------------------------------------------------------------------------\n");
 
     wcs_write_log(log_file, L"\nTable 2");
-    wcs_write_log(log_file, L"\n\nBit table used by program # for conversion of bits to c-text characters\n");
+    wcs_write_log(log_file, L"\n\nBit table used by program # for conversion of P-text bits to c-text characters\n");
     char* lookup_tbl_keys = ALLOC(sizeof(char) * 64 * 6 + 1);
     memcpy_s(lookup_tbl_keys, 64 * 6 + 1, prog_pps_content, 64 * 6);
     lookup_tbl_keys[64 * 6] = '\0';
@@ -5379,13 +5381,25 @@ SPAE_DLL_EXPIMP enc_error_t SPAE_CALL encrypt_file_with_anal(char* f_name, char*
 
     wcs_write_log(log_file, L"\nTable 4");
 
-    wcs_write_log(log_file, L"\n\nPSP-lock char lookup table\n");
+    wcs_write_log(log_file, L"\n\nPSP-lock char lookup table, and C9 control char.\n");
 
-    for (size_t i = 0; i < 64; i++)
+    for (size_t i = 0; i < 8; i++)
     {
-        mbstowcs_s(NULL, w_tbl_key, strlen(simple_keys[i]) + 1, simple_keys[i], strlen(simple_keys[i]));
-        wcs_write_log(log_file, w_tbl_key);
-        wcs_write_log(log_file, L"\t");
+        for (size_t j = 0; j < 8; j++)
+        {
+            wcs_const_write_log(log_file, spec_values[i*8 + j]);
+            wcs_write_log(log_file, L"\t\t");
+        }
+
+        wcs_write_log(log_file, L"\n");
+
+        for (size_t j = 0; j < 8; j++)
+        {
+            mbstowcs_s(NULL, w_tbl_key, strlen(simple_keys[i * 8 + j]) + 1, simple_keys[i * 8 + j], strlen(simple_keys[i * 8 + j]));
+            wcs_write_log(log_file, w_tbl_key);
+            wcs_write_log(log_file, L"\t");
+        }
+        wcs_write_log(log_file, L"\n");
     }
 
     wcs_write_log(log_file, L"\n-----------------------------------------------------------------------------\n");

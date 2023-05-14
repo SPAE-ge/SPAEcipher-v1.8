@@ -390,8 +390,10 @@ void convert_enc_plain_txt_to_spec_chars(wchar_t* plainSpec, char* binCont, char
 	size_t offset = 0;
 	char* splitted = ALLOC(8 * sizeof(char));
 	size_t l = strlen(binCont) / 6;
+	size_t bin_len = strlen(binCont) / 3 + 2;
 
 	unsigned char* xoredIndex = ALLOC(7 * sizeof(unsigned char));
+	struct map_t* encry_map_s = map_create();
 
 	size_t shift = 0;
 	char* key = ALLOC(sizeof(char) * 6 + 1);
@@ -402,11 +404,12 @@ void convert_enc_plain_txt_to_spec_chars(wchar_t* plainSpec, char* binCont, char
 		key[6] = '\0';
 
 		xoredIndex = xor_short_strings(key, xorBits);
-		xoredIndex[6] = '\0';
+		xoredKeys[i] = ALLOC(7 * sizeof(char));
+		memcpy(xoredKeys[i], xoredIndex, 6);
+		xoredKeys[i][6] = '\0';
 
-		//wmemcpy_s(wxoredKeys[bindec(xoredIndex)], 64, spec_values[i], 2);
-
-		wxoredKeys[bindec(xoredIndex)] = spec_values[i];
+		map_set(encry_map_s, xoredKeys[i], spec_values[i]);
+		//wxoredKeys[bindec(xoredIndex)] = spec_values[i];
 
 		shift += 6;
 	}
@@ -415,7 +418,9 @@ void convert_enc_plain_txt_to_spec_chars(wchar_t* plainSpec, char* binCont, char
 	{
 		memcpy(splitted, binCont + offset, 6);
 		splitted[6] = '\0';
-		plainSpec[i] = *wxoredKeys[bindec(splitted)];
+		//plainSpec[i] = *wxoredKeys[bindec(splitted)];
+		wchar_t* val = map_get(encry_map_s, splitted);
+		wmemcpy_s(plainSpec + i, bin_len, val, 1);
 		offset += 6;
 	}
 	plainSpec[l] = '\0';
@@ -423,6 +428,8 @@ void convert_enc_plain_txt_to_spec_chars(wchar_t* plainSpec, char* binCont, char
 	FREE(splitted);
 	FREE(xoredIndex);
 	FREE(key);
+
+	free_struct_map(encry_map_s);
 }
 
 size_t get_index_from_simple_keys(const char* target)
